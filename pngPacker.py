@@ -1,9 +1,11 @@
 # coding=utf-8
 import png
+import os
 
-global pngdata
-global analyseLineNo
-global analyseLineCount
+# 全局变量
+pngdata = []
+analyseLineNo = 0
+analyseLineCount = 0
 
 """四个数据为一点 RGBA, 采用行扫描法"""    
 def scanLine(lineData, y):
@@ -78,7 +80,7 @@ def analyse(pngPath):
         analyseLineNo = l + 1
         result = scanLine(pngdata[l], l)
 
-        print("扫描到 %d 行" % l)
+#         print("扫描到 %d 行" % l)
         if result[0] > 0:
             for t in range(0, len(tempRect)):
                 if tempRect[t] in dellistT:
@@ -108,7 +110,7 @@ def analyse(pngPath):
                         dellistT.append(tempRect[x])
                         
                 if notChange:
-                    print("出现")
+#                     print("出现")
                     rectList.append(tempRect[t])
                     dellistT.append(tempRect[t])
                     
@@ -125,8 +127,20 @@ def analyse(pngPath):
     file.close()
     return rectList
 
+def trimList(rectlist, limit=[3,3]):
+    '''
+    裁剪矩阵列表，把噪点去掉
+    :param rectlist:
+    :param limit:
+    '''
+    newlist = []
+    for r in rectlist:
+        if r[2] - r[0] > limit[0] and (r[3] - r[1])/4 > limit[1]:
+            newlist.append(r)
+    return newlist
+
 """输出图片"""
-def writeFile(rectList, path = "temp//", name = "out", limit = [0,0]):
+def writeFile(rectList, path = "temp//", name = "out"):
     '''
     输出图片
     :param rectList:分析后的矩阵
@@ -136,12 +150,14 @@ def writeFile(rectList, path = "temp//", name = "out", limit = [0,0]):
     '''
     for n in range(len(rectList)):
         s = makePngData(rectList[n])
-        if len(s) > limit[0] and len(s[0]) > limit[1]:
-            outfile = open(path + name + "%d.png" % n, "wb")
+        if len(s) > 0:
+            outfile = open(os.path.join(path,name + "%d.png" % n), "wb")
             w = png.Writer(int(len(s[0]) / 4), len(s), greyscale = False, bitdepth = 8, alpha = True, planes = 4)
             w.write(outfile, s)
             outfile.close()
 
+def getstatus():
+    return analyseLineNo,analyseLineCount
     
 
 #     rectList = analyse()
