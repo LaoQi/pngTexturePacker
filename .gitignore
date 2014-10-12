@@ -98,3 +98,6 @@ $RECYCLE.BIN/
 *.msi
 *.msm
 *.msp
+*.project
+*.pydevproject
+.settings/org.eclipse.core.resources.prefs
