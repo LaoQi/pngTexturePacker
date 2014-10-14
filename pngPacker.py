@@ -159,7 +159,10 @@ def writeFile(rectList, path = "temp//", name = "out"):
 def getstatus():
     return analyseLineNo,analyseLineCount
     
-
+def resetStatus():
+    global analyseLineNo
+    global analyseLineCount
+    analyseLineNo,analyseLineCount = 0,0
 #     rectList = analyse()
 #     writeFile(rectList, "temp//", limit=[2,2])
 # 
