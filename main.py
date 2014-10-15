@@ -2,21 +2,30 @@
 import os
 import threading
 import time
-from tkinter import *
+from tkinter import Button, Frame, Label, Entry, Tk
+from tkinter import Canvas
 import tkinter.filedialog as filedialog
-from pngPacker import *
-from threading import Thread
+from pngPacker import trimList, getstatus, resetStatus, writeFile, analyse
+from tkinter.constants import RIGHT
 
-__version__ = "0.0.2"
+__version__ = "0.0.3"
 
-top = Tk()
-top.geometry("390x90")
-top.title("pngPacker   ---  version %s" % __version__)
-filePathLabel = Label(top, text = "", width = "30")
-outDictoryLabel = Label(top, text = "", width = "30")
+root = Tk()
+# root.geometry("385x150")
+root.title("pngPacker   ---  version %s" % __version__)
+top = Frame(root, width = 390, height = 90)
+advancedFrame = Frame(root, width = 390, height = 90)
+
+filePathLabel = Label(top, text = "", width = 30)
+outDictoryLabel = Label(top, text = "", width = 30)
+outNameEntry = Entry(advancedFrame)
+outNameEntry.textvariable = "image_"
+limitXEntry = Entry(advancedFrame, width = 2)
+limitYEntry = Entry(advancedFrame, width = 2)
 
 pngPath = ""
 outDictory = ""
+name = "image_"
 
 # global rectlist
 rectlist = []
@@ -27,6 +36,7 @@ def getfilepath():
         global pngPath
         pngPath = os.path.abspath(filepath)
         filePathLabel.config(text = filepath)    # 将选择好的路径加入到Label里面
+        nameByfile()
         controlBar("未开始", 0)
 
 
@@ -36,6 +46,14 @@ def outfilepath():
         global outDictory
         outDictory = os.path.abspath(filepath)
         outDictoryLabel.config(text = filepath)
+
+def nameByfile():
+    global name
+    if pngPath:
+        name = os.path.basename(pngPath)[:-4]    # 去除.png扩展名
+        temp = outNameEntry.get()
+        outNameEntry.delete(0, len(temp))
+        outNameEntry.insert(0, name)
 
 def go():
     if not pngPath:
@@ -64,9 +82,10 @@ def runstatusThread(anaThread):
 
 def runthread():
     global rectlist
-    rectlist = trimList(analyse(pngPath), [5, 5])
+    limit = list(map(lambda x: bool(x) and int(x) or 1, [limitXEntry.get(), limitYEntry.get()]))
+    rectlist = trimList(analyse(pngPath), limit)
     print(rectlist)
-    writeFile(rectlist, outDictory, "name")
+    writeFile(rectlist, outDictory, outNameEntry.get())
 
 items = {}
 bar = Canvas(top, width = 300, height = 20, bg = "white")
@@ -82,9 +101,23 @@ def controlBar(text = "未开始", rate = 0):
 
 # label = Label(top, text = 'hello ,python')
 # label.pack(fill=BOTH)
+
+top.pack()
+advancedFrame.pack(anchor = "nw", pady = 20)
+
 getBtn = Button(top, text = "打开", command = getfilepath, width = 10)
 outBtn = Button(top, text = "输出目录", command = outfilepath, width = 10)
 analyseBtn = Button(top, text = "开始", command = go, width = 10)
+
+customNameLabel = Label(advancedFrame, text = "自定义名称 : ", width = 10)
+customNameLabel.propagate(False)
+customNameLabel.pack(anchor = "nw", side = "left")
+outNameEntry.pack(anchor = "ne", side = "left")
+cutlimitLabel = Label(advancedFrame, text = "大小限制 : ")
+cutlimitLabel.pack(anchor = "nw", side = "left")
+limitXEntry.pack(anchor = "ne", side = "left")
+Label(advancedFrame, text="X", width = 2).pack(anchor = "ne", side = "left")
+limitYEntry.pack(anchor = "nw", side = "left")
 
 filePathLabel.grid(row = 0, column = 0)
 getBtn.grid(row = 0, column = 1)
